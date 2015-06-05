@@ -37,6 +37,11 @@ class SDDateHandler: NSObject {
     let kTwitterDateFormat = "EEE MMM d HH:mm:ss Z y"
     let kResponseDateFormat = "EEE, dd MMM yyyy HH:mm:ss Z"
     let kScheduleDateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+    let kScheduleOutputWeekDay = "EEEE"
+    let kScheduleOutputMonthDay = "dd"
+    let kScheduleOutputMonthName = "MMM"
+    let kScheduleOutputHours = "HH"
+    let kScheduleOutputMinutes = "mm"
 
     class var sharedInstance: SDDateHandler {
 
@@ -68,10 +73,28 @@ class SDDateHandler: NSObject {
     }
     
     func formatScheduleDetailDate(date: NSDate) -> String? {
-        dateFormatter.dateStyle = .FullStyle
-        dateFormatter.timeStyle = .ShortStyle
-        dateFormatter.locale = NSLocale.currentLocale()
-        return dateFormatter.stringFromDate(date)
+        
+        
+        dateFormatter.dateFormat = kScheduleOutputWeekDay
+        let weekDay = dateFormatter.stringFromDate(date)
+        dateFormatter.dateFormat = kScheduleOutputMonthDay
+        let monthDayNumber = dateFormatter.stringFromDate(date)
+        dateFormatter.dateFormat = kScheduleOutputMonthName
+        let monthName = dateFormatter.stringFromDate(date)
+        dateFormatter.dateFormat = kScheduleOutputHours
+        let hours = dateFormatter.stringFromDate(date)
+        dateFormatter.dateFormat = kScheduleOutputMinutes
+        let minutes = dateFormatter.stringFromDate(date)
+        
+        if let monNumber = monthDayNumber.toInt() {
+            return "\(weekDay) (\(monNumber)\(SDDateHandler.ordinalSuffixFromDayNumber(monNumber)) \(monthName).) \(hours):\(minutes)"
+        } else {
+            dateFormatter.dateStyle = .FullStyle
+            dateFormatter.timeStyle = .ShortStyle
+            dateFormatter.locale = NSLocale.currentLocale()
+            
+            return dateFormatter.stringFromDate(date)
+        }
     }
     
     func hoursAndMinutesFromDate(date: NSDate) -> String? {
@@ -79,6 +102,17 @@ class SDDateHandler: NSObject {
         dateFormatter.dateStyle = .NoStyle
         dateFormatter.timeStyle = .ShortStyle
         return dateFormatter.stringFromDate(date)
+    }
+    
+    class func ordinalSuffixFromDayNumber(day: Int) -> String {
+        let suffixes = ["th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"]
+        var suffix = "th"
+        
+        let value = abs(day % 100)
+        if (value < 10) || (value > 19) {
+            suffix = suffixes[value % 10]
+        }
+        return suffix
     }
     
     class func convertDateToLocalTime(date: NSDate, timeZoneName: String) -> NSDate? {
